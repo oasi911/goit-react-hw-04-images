@@ -1,120 +1,93 @@
+import { useState, useEffect } from 'react';
 import { getImages } from 'utils/api';
 import 'react-toastify/dist/ReactToastify.css';
 import { toast, ToastContainer } from 'react-toastify';
-import { Component } from 'react';
 import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Loader } from './Loader/Loader';
 import { Button } from './Button/Button';
 import { Modal } from './Modal/Modal';
 
-export class App extends Component {
-  state = {
-    images: [],
-    per_page: 12,
-    currentPage: 1,
-    query: '',
-    isLoadMorePresent: false,
-    loading: false,
-    isModalShown: false,
-    currentModalImg: {
-      largeImageURL: '',
-      alt: '',
-    },
-  };
+export const App = () => {
+  const [images, setImages] = useState([]);
+  const [perPage, setPerPage] = useState(12);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [query, setQuery] = useState('');
+  const [isLoadMorePresent, setIsLoadMorePresent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isModalShown, setIsModalShown] = useState(false);
+  const [currentModalImg, setCurrentModalImg] = useState({
+    largeImageURL: '',
+    alt: '',
+  });
 
-  componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.query !== this.state.query ||
-      prevState.currentPage !== this.state.currentPage
-    ) {
-      this.fetchNextPage();
+  useEffect(() => {
+    if (query !== '' || currentPage !== 1) {
+      fetchNextPage();
     }
-  }
+  }, [query, currentPage]);
 
-  fetchNextPage = async () => {
-    this.setState({ loading: true });
+  const fetchNextPage = async () => {
+    setLoading(true);
 
     try {
       const fetchData = await getImages({
-        per_page: this.state.per_page,
-        currentPage: this.state.currentPage,
-        query: this.state.query,
+        per_page: perPage,
+        currentPage: currentPage,
+        query: query,
       });
 
-      this.setState(prevState => {
-        return {
-          images: [...prevState.images, ...fetchData.data.hits],
-          isLoadMorePresent: fetchData.data.hits.length === prevState.per_page,
-        };
-      });
+      setImages(prevImages => [...prevImages, ...fetchData.data.hits]);
+      setIsLoadMorePresent(fetchData.data.hits.length === perPage);
     } catch (error) {
       toast.error(error.message);
     } finally {
-      this.setState({ loading: false });
+      setLoading(false);
     }
   };
 
-  onSubmit = ev => {
+  const onSubmit = ev => {
     ev.preventDefault();
 
     const inputValue = ev.currentTarget.elements.search.value;
 
-    this.setState({
-      query: inputValue,
-      currentPage: 1,
-      loading: true,
-      images: [],
-      isLoadMorePresent: false,
-    });
+    setQuery(inputValue);
+    setCurrentPage(1);
+    setLoading(true);
+    setImages([]);
+    setIsLoadMorePresent(false);
   };
 
-  handleLoadMoreBtnClick = () => {
-    this.setState(prevState => {
-      return { currentPage: prevState.currentPage + 1 };
-    });
+  const handleLoadMoreBtnClick = () => {
+    setCurrentPage(prevCurrentPage => prevCurrentPage + 1);
   };
 
-  handleModalOpen = (largeImageURL, tags) => {
-    this.setState({
-      isModalShown: true,
-      currentModalImg: {
-        largeImageURL: largeImageURL,
-        alt: tags,
-      },
+  const handleModalOpen = (largeImageURL, tags) => {
+    setCurrentModalImg({
+      largeImageURL: largeImageURL,
+      alt: tags,
     });
+    setIsModalShown(true);
   };
 
-  handleModalClose = ev => {
+  const handleModalClose = ev => {
     if (ev.code === 'Escape' || ev.target === ev.currentTarget) {
-      this.setState({ isModalShown: false });
+      setIsModalShown(false);
     }
   };
 
-  render() {
-    const {
-      images,
-      loading,
-      isLoadMorePresent,
-      isModalShown,
-      currentModalImg,
-    } = this.state;
-    return (
-      <>
-        <Searchbar onSubmit={this.onSubmit} />
-        <ImageGallery images={images} handleModalOpen={this.handleModalOpen} />
-        {loading && <Loader />}
-        {isLoadMorePresent && (
-          <Button handleLoadMoreBtnClick={this.handleLoadMoreBtnClick} />
-        )}
-        {isModalShown && (
-          <Modal
-            image={currentModalImg}
-            handleModalClose={this.handleModalClose}
-          />
-        )}
-        <ToastContainer />
-      </>
-    );
-  }
-}
+  return (
+    <>
+      <Searchbar onSubmit={onSubmit} />
+      <ImageGallery images={images} handleModalOpen={handleModalOpen} />
+      {loading && <Loader />}
+      {isLoadMorePresent && (
+        <Button handleLoadMoreBtnClick={handleLoadMoreBtnClick} />
+      )}
+      {isModalShown && (
+        <Modal image={currentModalImg} handleModalClose={handleModalClose} />
+      )}
+      <ToastContainer />
+    </>
+  );
+};
