@@ -48,7 +48,6 @@ export const App = () => {
 
   const onSubmit = ev => {
     ev.preventDefault();
-
     const inputValue = ev.currentTarget.elements.search.value;
 
     setQuery(inputValue);
