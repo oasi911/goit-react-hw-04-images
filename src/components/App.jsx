@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getImages } from 'utils/api';
 import 'react-toastify/dist/ReactToastify.css';
 import { toast, ToastContainer } from 'react-toastify';
@@ -21,13 +21,7 @@ export const App = () => {
     alt: '',
   });
 
-  useEffect(() => {
-    if (query !== '' || currentPage !== 1) {
-      fetchNextPage();
-    }
-  }, [query, currentPage]);
-
-  const fetchNextPage = async () => {
+  const fetchNextPage = useCallback(async () => {
     setLoading(true);
 
     try {
@@ -44,10 +38,17 @@ export const App = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [perPage, currentPage, query]);
+
+  useEffect(() => {
+    if (query !== '' || currentPage !== 1) {
+      fetchNextPage();
+    }
+  }, [query, currentPage, fetchNextPage]);
 
   const onSubmit = ev => {
     ev.preventDefault();
+
     const inputValue = ev.currentTarget.elements.search.value;
 
     setQuery(inputValue);
