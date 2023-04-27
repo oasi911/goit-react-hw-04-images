@@ -10,7 +10,6 @@ import { Modal } from './Modal/Modal';
 
 export const App = () => {
   const [images, setImages] = useState([]);
-  const [perPage, setPerPage] = useState(12);
   const [currentPage, setCurrentPage] = useState(1);
   const [query, setQuery] = useState('');
   const [isLoadMorePresent, setIsLoadMorePresent] = useState(false);
@@ -20,6 +19,7 @@ export const App = () => {
     largeImageURL: '',
     alt: '',
   });
+  const perPage = 12;
 
   const fetchNextPage = useCallback(async () => {
     setLoading(true);
