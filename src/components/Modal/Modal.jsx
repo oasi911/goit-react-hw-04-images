@@ -1,29 +1,28 @@
-import { Component } from 'react';
+import { useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-export class Modal extends Component {
-  componentDidMount() {
-    window.addEventListener('keydown', this.props.handleModalClose);
-  }
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.props.handleModalClose);
-  }
-  render() {
-    const { image, handleModalClose } = this.props;
+export function Modal(props) {
+  const { image, handleModalClose } = props;
 
-    return (
-      <div className="Overlay" onClick={handleModalClose}>
-        <div className="Modal">
-          <img
-            src={image.largeImageURL}
-            alt={image.alt}
-            width="800"
-            height="600"
-          />
-        </div>
+  useEffect(() => {
+    window.addEventListener('keydown', handleModalClose);
+    return () => {
+      window.removeEventListener('keydown', handleModalClose);
+    };
+  }, [handleModalClose]);
+
+  return (
+    <div className="Overlay" onClick={handleModalClose}>
+      <div className="Modal">
+        <img
+          src={image.largeImageURL}
+          alt={image.alt}
+          width="800"
+          height="600"
+        />
       </div>
-    );
-  }
+    </div>
+  );
 }
 
 Modal.propTypes = {
